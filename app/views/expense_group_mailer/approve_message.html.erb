@@ -1,0 +1,7 @@
+Hi <%= params[:user].email%>
+You have applied for reimbursement named <%= params[:title]%>.
+The following expenses has been approved.
+<%= params[:approved] %>
+And the following expenses have been rejected.
+<%= params[:rejected] %>
+The amount that can be reimbursed is <%= params[:amount] %>
