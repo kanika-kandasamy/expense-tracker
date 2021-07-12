@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  employee: one
+  title: MyString
+  total_amount: 1
+  status: false
+
+two:
+  employee: two
+  title: MyString
+  total_amount: 1
+  status: false
