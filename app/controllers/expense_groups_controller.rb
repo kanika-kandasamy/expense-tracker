@@ -1,5 +1,5 @@
 class ExpenseGroupsController < ApplicationController
-    ALLOWED_DATA = %[title total_amount status].freeze
+    ALLOWED_DATA = %[title applied_amount approved_amount status].freeze
    
 
     def index
@@ -8,7 +8,7 @@ class ExpenseGroupsController < ApplicationController
     end
 
     def create_expense_group
-        employee = Employee.find_by(id: params[:id])
+        employee = Employee.find_by(id: params[:emp_id])
         if employee.active_status == true
             data = json_payload.select { |instance| ALLOWED_DATA.include? instance}
             expense_group = employee.expense_groups.new(data)
@@ -21,7 +21,7 @@ class ExpenseGroupsController < ApplicationController
     end
 
     def expense_group_status
-        user = Employee.find_by(id: params[:id])
+        user = Employee.find_by(id: params[:u_id])
         Current.user = user
         authorize user, policy_class: EmployeesPolicy
         employee = Employee.find_by(id: params[:emp_id])
@@ -34,27 +34,31 @@ class ExpenseGroupsController < ApplicationController
             approved = []
             rejected = []
             if expense_group.status == "Completed"
-                expense_group.total_amount = 0
+                expense_group.applied_amount = 0
+                expense_group.approved_amount = 0
                 expense_group.expenses.each do |expense|
                     if expense.status== "Approved"
-                        expense_group.total_amount += expense.amount
+                        expense_group.approved_amount += expense.amount
+                        expense_group.applied_amount += expense.amount
                         approved << expense.description
                     elsif expense.status == "Rejected"
                         rejected << expense.description
+                        expense_group.applied_amount += expense.amount
                     end
                 end
                 expense_group.save
-                if expense_group.total_amount == 0
-                    ExpenseGroupMailer.with(user: employee, title: expense_group.title).reject_message.deliver_now
+                if expense_group.approved_amount == 0
+                    ExpenseGroupMailer.with(user: employee, title: expense_group.title, applied_amount: expense_group.applied_amount).reject_message.deliver_now
                 else
-                    ExpenseGroupMailer.with(user: employee, title: expense_group.title, amount: expense_group.total_amount, approved: approved, rejected: rejected).approve_message.deliver_now
+                    ExpenseGroupMailer.with(user: employee, title: expense_group.title, applied_amount: expense_group.applied_amount, approved_amount: expense_group.approved_amount, approved: approved, rejected: rejected).approve_message.deliver_now
                 end   
             end
         end
     end
 
     def delete_expense_group
-        expense_group = ExpenseGroup.find_by(id: params[:id])
+        employee = Employee.find_by(id: params[:emp_id])
+        expense_group = employee.expense_groups.find_by(id: params[:expg_id])
         if expense_group.destroy
             render json: "Successfully deleted!"
         else

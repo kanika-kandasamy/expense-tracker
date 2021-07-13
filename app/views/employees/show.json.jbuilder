@@ -3,7 +3,8 @@ json.expense_groups(@employee.expense_groups) do |expense_group|
     json.id expense_group.id
     json.title expense_group.title
     json.status expense_group.status
-    json.total_amount expense_group.total_amount
+    json.applied_amount expense_group.applied_amount
+    json.approved_amount expense_group.approved_amount
     json.expenses(expense_group.expenses) do |expense|
         json.id expense.id
         json.invoice_number expense.invoice_number

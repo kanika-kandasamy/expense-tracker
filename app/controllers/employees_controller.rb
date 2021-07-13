@@ -35,10 +35,10 @@ class EmployeesController < ApplicationController
     end
 
     def search_employee
-        user = Employee.find_by(id: params[:id])
+        user = Employee.find_by(id: params[:u_id])
         Current.user = user
         authorize user, policy_class: EmployeesPolicy
-        @employee = Employee.find_by(id: params[:e_id])
+        @employee = Employee.find_by(id: params[:emp_id])
         render :search_employee
         #render json: employee.expenses
     end
