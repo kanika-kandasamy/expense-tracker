@@ -39,6 +39,9 @@ class EmployeesController < ApplicationController
         user = Employee.find_by(id: params[:id])
         Current.user = user
         authorize user, policy_class: EmployeesPolicy
+        if user.id == employee.id
+            render json: "Error : Users cannot approve their own requests" 
+        end
         employee = Employee.find_by(id: params[:e_id])
         if employee.destroy
             render json: "Employee deleted!"
