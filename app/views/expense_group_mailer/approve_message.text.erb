@@ -1,7 +1,7 @@
 Hi <%= params[:user].email%>
-You have applied for reimbursement named <%= params[:title]%>.
+You have applied for reimbursement named <%= params[:title]%> for Rs.<%= params[:applied_amount]%>.
 The following expenses has been approved.
 <%= params[:approved] %>
 And the following expenses have been rejected.
 <%= params[:rejected] %>
-The amount that can be reimbursed is <%= params[:amount] %>
+The amount that can be reimbursed is <%= params[:approved_amount] %>

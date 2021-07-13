@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_07_12_130840) do
+ActiveRecord::Schema.define(version: 2021_07_13_072907) do
 
   create_table "comments", force: :cascade do |t|
     t.integer "expense_id", null: false
@@ -36,10 +36,11 @@ ActiveRecord::Schema.define(version: 2021_07_12_130840) do
   create_table "expense_groups", force: :cascade do |t|
     t.integer "employee_id", null: false
     t.string "title"
-    t.integer "total_amount", default: 0
+    t.integer "applied_amount", default: 0
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.string "status", default: "null"
+    t.integer "approved_amount", default: 0
     t.index ["employee_id"], name: "index_expense_groups_on_employee_id"
   end
 

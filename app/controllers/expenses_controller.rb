@@ -10,7 +10,7 @@ class ExpensesController < ApplicationController
     end
 
     def create_expense
-        employee = Employee.find_by(id: params[:id])
+        employee = Employee.find_by(id: params[:emp_id])
         if employee.active_status == true
             expense_group = employee.expense_groups.find_by(id: params[:expg_id])
             data = json_payload.select { |instance| ALLOWED_DATA.include? instance}
@@ -54,7 +54,7 @@ class ExpensesController < ApplicationController
     end
 
     def expense_status
-        user = Employee.find_by(id: params[:id])
+        user = Employee.find_by(id: params[:u_id])
         Current.user = user
         authorize user, policy_class: EmployeesPolicy
         employee = Employee.find_by(id: params[:emp_id])
