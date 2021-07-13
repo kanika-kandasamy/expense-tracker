@@ -4,6 +4,9 @@ class CommentsController < ApplicationController
         user = Employee.find_by(id: params[:id])
         Current.user = user
         authorize user, policy_class: EmployeesPolicy
+        if user.id == employee.id
+            render json: "Error : Users cannot approve their own requests" 
+        end
         employee = Employee.find_by(id: params[:emp_id])
         expense_group = employee.expense_groups.find_by(id: params[:expg_id])
         expense = expense_group.expenses.find_by(id: params[:exp_id])
@@ -35,6 +38,9 @@ class CommentsController < ApplicationController
         user = Employee.find_by(id: params[:id])
         Current.user = user
         authorize user, policy_class: EmployeesPolicy
+        if user.id == employee.id
+            render json: "Error : Users cannot approve their own requests" 
+        end
         employee = Employee.find_by(id: params[:emp_id])
         expense_group = employee.expense_groups.find_by(id: params[:expg_id])
         expense = expense_group.expenses.find_by(id: params[:exp_id])
