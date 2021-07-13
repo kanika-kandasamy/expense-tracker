@@ -7,6 +7,7 @@ Rails.application.routes.draw do
   post "create_expense/:id/:expg_id", to: "expenses#create_expense"
   post "create_expense_group/:id", to: "expense_groups#create_expense_group"
 
+  get "show_employees/:id", to: "employees#show_employees"
 
   get "terminate/:id", to: "employees#terminate"
 

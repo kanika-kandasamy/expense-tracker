@@ -23,4 +23,8 @@ class EmployeesPolicy < ApplicationPolicy
     def delete_comment?
         user.admin?
     end
+
+    def show_employees?
+        user.admin?
+    end
 end

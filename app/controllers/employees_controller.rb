@@ -21,6 +21,14 @@ class EmployeesController < ApplicationController
         render :show
     end
 
+    def show_employees
+        user = Employee.find_by(id: params[:id])
+        Current.user = user
+        authorize user, policy_class: EmployeesPolicy
+        @employees = Employee.all
+        render :show_employees
+    end
+
     def terminate
         employee = Employee.find_by(id: params[:id])
         employee.update(active_status: false)
@@ -39,14 +47,15 @@ class EmployeesController < ApplicationController
         user = Employee.find_by(id: params[:id])
         Current.user = user
         authorize user, policy_class: EmployeesPolicy
-        if user.id == employee.id
-            render json: "Error : Users cannot approve their own requests" 
-        end
         employee = Employee.find_by(id: params[:e_id])
-        if employee.destroy
-            render json: "Employee deleted!"
+        if user.id == employee.id
+            render json: "Error" 
         else
-            render json: "error"
+            if employee.destroy
+                render json: "Employee deleted!"
+            else
+                render json: "error"
+            end
         end
     end
 end
