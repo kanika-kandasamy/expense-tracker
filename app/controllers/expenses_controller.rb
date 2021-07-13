@@ -60,14 +60,15 @@ class ExpensesController < ApplicationController
         employee = Employee.find_by(id: params[:emp_id])
         if user.id == employee.id
             render json: "Error : Users cannot approve their own requests"
-        end
-        expense_group = employee.expense_groups.find_by(id: params[:expg_id])
-        expense = expense_group.expenses.find_by(id: params[:exp_id])
-        data = json_payload.select { |instance| ALLOWED_DATA.include? instance}
-        if expense.expense_system_validate == true
-            expense.update(data)
-        else 
-            render json: "Not valid"
+        else
+            expense_group = employee.expense_groups.find_by(id: params[:expg_id])
+            expense = expense_group.expenses.find_by(id: params[:exp_id])
+            data = json_payload.select { |instance| ALLOWED_DATA.include? instance}
+            if expense.expense_system_validate == true
+                expense.update(data)
+            else 
+                render json: "Not valid"
+            end
         end
     end
 
