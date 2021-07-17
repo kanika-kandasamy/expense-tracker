@@ -1,12 +1,5 @@
 class ExpenseGroupsController < ApplicationController
    
-    # GET employees/1/expense_groups
-    def index
-        expense_groups = ExpenseGroup.find_by(employee_id: params[:employee_id])
-        render json: expense_groups
-    end
-
-
     # POST employees/1/expense_groups
     def create
         employee = Employee.find_by(id: params[:employee_id])

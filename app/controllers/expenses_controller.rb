@@ -45,6 +45,8 @@ class ExpensesController < ExpenseGroupsController
                     render json: "No such expense group"
                 end
             end
+        else
+            render json: "Error, terminated employees cannot apply for reimbursement"
         end
     end
 
