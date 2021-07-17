@@ -68,13 +68,13 @@ class ExpensesController < ExpenseGroupsController
     end
 
 
-    #PATCH employees/1/expenses/1/update_status
+    #PATCH expenses/1/update_status
     def update_status
-        employee = Employee.find_by(id: params[:employee_id])
+        expense = Expense.find_by(id: params[:expense_id])
+        employee = Employee.find_by(id: expense.employee_id)
         if @user.id == employee.id
             render json: "Error : Users cannot approve their own requests"
         else
-            expense = employee.expenses.find_by(id: params[:expense_id])
             data = params.permit(%i[status])
             expense_group = ExpenseGroup.find_by(id: expense.expense_group_id) if expense.expense_group_id != "null"
             if expense_group.nil?

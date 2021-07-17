@@ -10,12 +10,11 @@ Rails.application.routes.draw do
     end
 
 
-    resources :expenses, except: [:update] do
-      patch :update_status
-    end
+    resources :expenses, except: [:update]
   end
 
   resources :expenses, only: [] do 
+    patch :update_status
     resources :comments, only: [:index, :create] do
       post :reply_comment
       delete :delete_comment
