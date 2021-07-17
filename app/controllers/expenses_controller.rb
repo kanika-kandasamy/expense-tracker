@@ -2,50 +2,62 @@ require 'net/http'
 require 'uri'
 require 'json'
 
-class ExpensesController < ApplicationController
-    ALLOWED_DATA = %[employee_id expense_group_id invoice_number date description amount attachment status].freeze
+class ExpensesController < ExpenseGroupsController
+
+    before_action :set_user_and_check_authorization, only: [:update_expense_status, :update_status]
+    before_action :set_details, only: [:index, :create, :destroy, :destroy_expense, :show_expense]
+
+
+    # GET employees/1/expenses
     def index
-        expense = Expense.group(:expense_group_id)
-        render json: expense
+        expenses = @employee.expenses.all
+        render json: expenses
     end
 
-    def create_expense
-        employee = Employee.find_by(id: params[:emp_id])
-        if employee.active_status == true
-            expense_group = employee.expense_groups.find_by(id: params[:expg_id])
-            data = json_payload.select { |instance| ALLOWED_DATA.include? instance}
-            expense = expense_group.expenses.new(data)
-            if expense.save
-                system_check(expense)
-                render json: expense
+    # POST employees/1/expenses
+    def create
+        if @employee.active_status == true
+            if params[:expense_group_id] == nil
+                expense = @employee.expenses.create!(params.permit(%i[invoice_number date description expense_type amount attachment]))
+                if expense.save
+                    system_check(expense, @employee, nil)
+                    render json: expense
+                else
+                    render json: "error" 
+                end
             else
-                render json: "error" 
+                expense_group = ExpenseGroup.find_by(id: params[:expense_group_id])
+                if !(expense_group.nil?)
+                    if !(expense_group.pending?)
+                        render json: "Expense report already submitted. You can't add expense"
+                    else
+                        expense = expense_group.expenses.create(params.permit(%i[invoice_number date description expense_type amount attachment]))
+                        expense.employee_id = expense_group.employee_id
+                        expense.update(employee_id: expense.employee_id)
+                        if expense.save
+                            system_check(expense, @employee, nil)
+                            render json: expense
+                        else
+                            render json: "error" 
+                        end
+                    end
+                else
+                    render json: "No such expense group"
+                end
             end
         end
     end
 
-
-    #status = ( curl -H {"X-API-Key: b490bb80"} -X { POST -d {990} } ) + ( "https://my.api.mockaroo.com/invoices.json" )
-    def system_check(expense)
-        invoice = expense.invoice_number
-        if invoice % 2 == 0  
-            expense.update(expense_system_validate: true)
-        elsif invoice % 2 != 0 
-            expense.update(status: "Rejected")
-        end            
+    # GET employees/1/expenses/1
+    def show
+        expense = @employee.expenses.find_by(id: params[:id])
+        render json: expense
     end
 
 
-    def show_expenses
-        employee = Employee.find_by(id: params[:id])
-        expense_group = employee.expense_groups.find_by(id: params[:ex_g_id])
-        render json: expense_group.expenses
-    end
-
-    def delete_expense
-        employee = Employee.find_by(id: params[:id])
-        expense_group = employee.expense_groups.find_by(id: params[:expg_id])
-        expense = expense_groups.expenses.find_by(id: params[:exp_id])
+    # DELETE employees/1/expenses/1
+    def destroy
+        expense = @employee.expenses.find_by(id: params[:id])
         if expense.destroy
             render json: "Expense deleted!"
         else
@@ -53,52 +65,49 @@ class ExpensesController < ApplicationController
         end
     end
 
-    def expense_status
-        user = Employee.find_by(id: params[:u_id])
-        Current.user = user
-        authorize user, policy_class: EmployeesPolicy
-        employee = Employee.find_by(id: params[:emp_id])
-        if user.id == employee.id
+
+    #PATCH employees/1/expenses/1/update_status
+    def update_status
+        employee = Employee.find_by(id: params[:employee_id])
+        if @user.id == employee.id
             render json: "Error : Users cannot approve their own requests"
         else
-            expense_group = employee.expense_groups.find_by(id: params[:expg_id])
-            expense = expense_group.expenses.find_by(id: params[:exp_id])
-            data = json_payload.select { |instance| ALLOWED_DATA.include? instance}
-            if expense.expense_system_validate == true
-                expense.update(data)
-            else 
+            expense = employee.expenses.find_by(id: params[:expense_id])
+            data = params.permit(%i[status])
+            expense_group = ExpenseGroup.find_by(id: expense.expense_group_id) if expense.expense_group_id != "null"
+            if expense_group.nil?
+                if expense.expense_system_validate == true && expense.pending? 
+                    expense.update(data)
+                    if expense.approved?
+                        ExpenseMailer.with(user: employee, type: expense.expense_type, description: expense.description, applied_amount: expense.amount, approved_amount: expense.amount).approve_message.deliver_now
+                    elsif expense.rejected?
+                        ExpenseMailer.with(user: employee, type: expense.expense_type, applied_amount: expense.amount, description: expense.description, approved_amount: expense.amount).reject_message.deliver_now
+                    end
+                else
+                    render json: "Not valid"
+                end
+            elsif !(expense_group.nil?)
+                if !(expense_group.submitted?)
+                    render json: "Expense group has either been approved already or not submitted yet. You cant approve it."
+                elsif expense_group.submitted?
+                    if expense.expense_system_validate == true && expense.pending? 
+                        expense.update(data)
+                        expense_group_status(expense_group)
+                    else
+                        render json: "Not valid"
+                    end
+                end
+            else
                 render json: "Not valid"
             end
         end
     end
 
-=begin
-    def invoice_validator(expense)
-        uri = URI.parse("https://my.api.mockaroo.com/invoices.json")
-        request = Net::HTTP::Post.new(uri)
-        request["X-Api-Key"] = "b490bb80"
-        request.body = JSON.dump({
-        "invoice_id" => expense.invoice_number
-        })
 
-        req_options = {
-        use_ssl: uri.scheme == "https",
-        }
-
-        response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
-            http.request(request)
-        end
-
-        # response.code
-        resp = response.body
-        puts resp
-        if resp.end_with?("true") 
-            expense.update(expense_system_check: true)
-        else
-            expense.update(expense_system_check: false)
-            expense.update(status: "Rejected")
-        end
+    private
+    def set_details
+        @user = Employee.find_by(id: params[:emp_id])
+        @employee = Employee.find_by(id: params[:employee_id])
+        @expense_group = @employee.expense_groups.find_by(id: params[:expense_group_id])
     end
-=end
 end
-
