@@ -1,5 +1,5 @@
 class EmployeesController < ApplicationController
-    before_action :set_user_and_check_authorization, only: [:search_employee, :terminate, :delete_employee, :create]
+    before_action :set_user_and_check_authorization, only: [:search_employee, :terminate, :delete_employee, :create, :index]
 
     # GET /employees
     def index
@@ -31,7 +31,7 @@ class EmployeesController < ApplicationController
     def terminate
         employee = Employee.find_by(id: params[:employee_id])
         employee.update(active_status: false)
-        render json: "Employee terminated"
+        render json: { message:  "Employee terminated" }, status: :ok
     end
 
 
