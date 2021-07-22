@@ -10,14 +10,15 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_07_13_072907) do
+ActiveRecord::Schema.define(version: 2021_07_17_053812) do
 
   create_table "comments", force: :cascade do |t|
     t.integer "expense_id", null: false
     t.text "description"
-    t.text "reply"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "parent_id"
+    t.integer "created_by"
     t.index ["expense_id"], name: "index_comments_on_expense_id"
   end
 
@@ -39,13 +40,13 @@ ActiveRecord::Schema.define(version: 2021_07_13_072907) do
     t.integer "applied_amount", default: 0
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.string "status", default: "null"
     t.integer "approved_amount", default: 0
+    t.integer "status", default: 0
     t.index ["employee_id"], name: "index_expense_groups_on_employee_id"
   end
 
   create_table "expenses", force: :cascade do |t|
-    t.integer "expense_group_id", null: false
+    t.integer "expense_group_id"
     t.integer "invoice_number"
     t.date "date"
     t.text "description"
@@ -54,11 +55,15 @@ ActiveRecord::Schema.define(version: 2021_07_13_072907) do
     t.boolean "expense_system_validate", default: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.string "status", default: "null"
+    t.integer "status", default: 0
+    t.integer "expense_type"
+    t.integer "employee_id"
+    t.index ["employee_id"], name: "index_expenses_on_employee_id"
     t.index ["expense_group_id"], name: "index_expenses_on_expense_group_id"
   end
 
   add_foreign_key "comments", "expenses"
   add_foreign_key "expense_groups", "employees"
+  add_foreign_key "expenses", "employees"
   add_foreign_key "expenses", "expense_groups"
 end
