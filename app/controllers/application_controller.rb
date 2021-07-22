@@ -5,13 +5,16 @@ require 'json'
 class ApplicationController < ActionController::API
     include Pundit
 
+    include ExceptionHandler
 
     def set_user_and_check_authorization
         @user = Employee.find_by(id: params[:emp_id])
         Current.user = @user
-        authorize @user, policy_class: EmployeesPolicy
-        rescue Pundit::NotAuthorizedError
-            render json: "User not authorized to do this action"
+        if params[:api_key] == "PMAK-60e69145b71df30037af3fe7-30b8aab1fe7736420e0653484ee8f58281"
+            authorize @user, policy_class: EmployeesPolicy
+        else
+            render json: {error: { message: "Unknown api-key" }}, status: :forbidden
+        end
     end
 
 
@@ -32,11 +35,8 @@ class ApplicationController < ActionController::API
         end
 
         resp = response.body
-=begin
         variable = JSON.parse resp.gsub('=>', ':')
         if variable['status'] == true
-=end
-        if expense.invoice_number % 2 == 0
             expense.update(expense_system_validate: true)
         else
             expense.update(expense_system_validate: false)

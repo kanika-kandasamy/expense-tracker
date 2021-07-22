@@ -15,7 +15,7 @@ class CommentsController < ApplicationController
     def create
         @employee = Employee.find_by(id: @expense.employee_id)
         if @user.id == @employee.id
-            render json: "Error - Admin and employee should not be the same" 
+            render json: { error: { message: "Admin and employee should not be the same" } }, status: :bad_request 
         else
             @comment = @expense.comments.create!(params.permit(%i[parent_id description]))
             @comment.update(created_by: params[:emp_id])
@@ -23,7 +23,7 @@ class CommentsController < ApplicationController
                 CommentMailer.with(user: @employee, admin: @user, comment: @comment, title: @expense.description).comment_message.deliver_now
                 render :create
             else
-                render json: "error" 
+                render json: { error: { message:  "Something went wrong" } }, status: :internal_server_error
             end
         end
     end
@@ -45,10 +45,11 @@ class CommentsController < ApplicationController
                     CommentMailer.with(user: @employee, admin: @user, comment: @comment, title: @expense.description).comment_message.deliver_now
                 end
             else
-                render json: "User not authorized to do this action"
+                @comment.destroy
+                render json: { error: { message: "User not authorized to do this action" } }, status: :forbidden
             end
         else
-            render json: "No such id"
+            render json: { error: { message: "No such id" } }, status: :bad_request 
         end
     end
     
@@ -59,9 +60,9 @@ class CommentsController < ApplicationController
         @comment = @expense.comments.find_by(id: params[:comment_id])
         if @comment.created_by == @user.id
             @comment.destroy
-            render json: "Comment successfully deleted"
+            render json: { message: "Comment successfully deleted" }, status: :ok
         else
-            render json: "User can only delete their own comments"
+            render json: { error: { message: "User can only delete their own comments"} }, status: :bad_request 
         end
     end
 

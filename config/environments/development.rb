@@ -52,17 +52,16 @@ Rails.application.configure do
   #config.action_mailer.default_url_options = { host: "localhost:3000"}
 
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
-  config.action_mailer.perform_deliveries=true
+  config.action_mailer.perform_deliveries = true
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.default_url_options = { host: "localhost:3000" }
-  config.action_mailer_delivery_method=:smtp
   # SMTP settings for gmail
   config.action_mailer.smtp_settings = {
     :address              => 'smtp.gmail.com',
     :port                 =>  587,
-    :domain               =>' gmail.com',
+    :domain               => 'gmail.com',
     :user_name            => 'kanikakandasamy@gmail.com',
-    :password             => 'Kanika@216!',
+    :password             => '123456',
     :authentication       => "plain"
   }
 
@@ -74,7 +73,6 @@ Rails.application.configure do
 
   # Use an evented file watcher to asynchronously detect changes in source code,
   # routes, locales, etc. This feature depends on the listen gem.
-  config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
   # Uncomment if you wish to allow Action Cable access from any origin.
   # config.action_cable.disable_request_forgery_protection = true

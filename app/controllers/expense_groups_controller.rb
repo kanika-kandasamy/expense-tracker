@@ -6,13 +6,14 @@ class ExpenseGroupsController < ApplicationController
         if employee.active_status == true
             expense_group = employee.expense_groups.create(expense_group_params)
             expense_group.expenses.each do |expense|
-            system_check(expense, employee, expense_group)   
-            expense.employee_id = expense_group.employee_id
-            expense.update(employee_id: expense.employee_id)
-            expense.save
+                system_check(expense, employee, expense_group)   
+                expense.employee_id = expense_group.employee_id
+                expense.update(employee_id: expense.employee_id)
+                expense.save
             end
+            render json: { message: "expense group created successfully"}, status: :created 
         else
-            render json: "Error, terminated employees cannot apply for reimbursement"
+            render json: { error: { message:  "terminated employees cannot apply for reimbursement" } }, status: :bad_request 
         end
     end
 
@@ -50,9 +51,9 @@ class ExpenseGroupsController < ApplicationController
         employee = Employee.find_by(id: params[:employee_id])
         expense_group = employee.expense_groups.find_by(id: params[:id])
         if expense_group.destroy
-            render json: "Successfully deleted!"
+            render json: { message: "Successfully deleted!"}, status: :ok
         else
-            render json: "Error"
+            render json: { error: {message: "Something went wrong"} }, status: :internal_server_error 
         end
     end 
 
@@ -63,8 +64,9 @@ class ExpenseGroupsController < ApplicationController
         data = params.permit(%i[status])
         if expense_group.pending?
             expense_group.update(data)
+            render json: { message: "status updated!"}, status: :ok 
         else
-            render json: "Expense group already submitted"
+            render json: { error: { message: "Expense group already submitted"} }, status: :bad_request 
         end
     end
 

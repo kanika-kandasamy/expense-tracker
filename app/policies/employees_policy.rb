@@ -35,4 +35,8 @@ class EmployeesPolicy < ApplicationPolicy
     def set_user_and_check_authorization?
         user.admin?
     end
+
+    def index?
+        user.admin?
+    end
 end
