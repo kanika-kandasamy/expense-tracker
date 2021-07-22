@@ -10,7 +10,7 @@ class ApplicationController < ActionController::API
     def set_user_and_check_authorization
         @user = Employee.find_by(id: params[:emp_id])
         Current.user = @user
-        if params[:api_key] == "PMAK-60e69145b71df30037af3fe7-30b8aab1fe7736420e0653484ee8f58281"
+        if params[:api_key] == "PMAK-xxxx"
             authorize @user, policy_class: EmployeesPolicy
         else
             render json: {error: { message: "Unknown api-key" }}, status: :forbidden
